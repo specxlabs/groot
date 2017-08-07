@@ -22,7 +22,7 @@ from time import sleep
 from datetime import datetime
                         # used to get the date using datetime.now()
 
-
+radius = 15
 plant1_name = 'daisy'   # used for demonstration purposes
 plant2_name = 'rose'
 
@@ -38,17 +38,28 @@ try:
 
     #assigns the threshold values of the humidity of each plant
     #according to their humidity group
-    if humidity_group1 == 'dry mesic' : 
+    humidity_group1_lower = humidity_group1.lower() 
+    humidity_group2_lower = humidity_group2.lower()
+    #compares the lower letters version text taken online to the following groups 
+    
+    if 'dry mesic' in humidity_group1_lower : 
         plant1_threshold = 40
 
-    elif humidity_group1 == 'mesic' :
+    elif 'mesic' in humidity_group1_lower :
         plant1_threshold = 60
-    
-    if humidity_group2 == 'dry mesic' :
+
+    elif 'wet' in humidity_group1_lower :
+        plant1_threshold = 80
+
+    if 'dry mesic' in humidity_group2_lower : 
         plant2_threshold = 40
 
-    elif humidity_group2 == 'mesic':
+    elif 'mesic' in humidity_group2_lower :
         plant2_threshold = 60
+
+    elif 'wet' in humidity_group2_lower :
+        plant2_threshold = 80
+
 
     gardener_no = Database.cursor.lastrowid
     
@@ -80,11 +91,14 @@ try:
         Database.cursor.execute(Database.add_humidity, plant2_humidityData)
         #Database.cnx.commit()
 
+        measure1 = 0
+        measure2 = 0
 
+        water_consumptionTotal = 0
+        
         # gets the soil humidity of each plant and compares it
         # to the threshold value
         if plant1_humidityValue < plant1_threshold:
-
             mo.valve1_on()
             mo.pump_on()
             pumpOn = True
@@ -106,7 +120,15 @@ try:
             mo.fan1_on()
             mo.fan2_on()
 
-            
+        if pumpOn:
+            measure1 = measureUltra()
+
+        else:
+            measure2 = measureUltra()
+
+        if measure1 > measure2:
+            water_consumptionTotal += 2 * math.pi * radius * (measure1 - measure2)
+        
         Database.cnx.commit()    
         sleep(10)
 
